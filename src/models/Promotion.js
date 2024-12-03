@@ -25,7 +25,7 @@ class Promotion {
   }
 
   getPromotionDiscountPrice(quantity, price) {
-    return quantity;
+    return (quantity / this.#get + 1) * price;
   }
 }
 
