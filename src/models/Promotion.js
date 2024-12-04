@@ -12,20 +12,20 @@ class Promotion {
     this.#endDate = endDate;
   }
 
-  getPromotion() {
+  getName() {
     return this.#name;
   }
 
+  getBuy() {
+    return this.#buy;
+  }
+
   checkForPromotion(quantity) {
-    if (quantity >= buy) {
+    if (quantity >= this.#buy) {
       return true;
     }
 
     return false;
-  }
-
-  getPromotionDiscountPrice(quantity, price) {
-    return (quantity / this.#get + 1) * price;
   }
 }
 

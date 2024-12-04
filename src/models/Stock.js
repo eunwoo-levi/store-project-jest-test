@@ -11,9 +11,19 @@ class Stock {
     return this.#products.map((product) => product.getInfo());
   }
 
-  decreaseQuantitiy(purchaseProducts) {
-    purchaseProducts.forEach((purchaseProduct) => {
-      const [name, quantity] = purchaseProduct;
+  getProductByName(name) {
+    const promotionProduct = this.#findPromotionProduct(name);
+    const normalProduct = this.#findNormalProduct(name);
+
+    if (promotionProduct) {
+      return promotionProduct;
+    }
+    return normalProduct;
+  }
+
+  decreaseQuantitiy(purchasedProducts) {
+    return purchasedProducts.map((purchasedProduct) => {
+      const [name, quantity, price] = purchasedProduct;
 
       const promotionProduct = this.#findPromotionProduct(name);
       const normalProduct = this.#findNormalProduct(name);
@@ -26,15 +36,16 @@ class Stock {
 
       if (promotionProduct && promotionProduct.getQuantity() >= quantity) {
         promotionProduct.decreaseQuantity(quantity);
-        return;
+        return [name, quantity, price, promotionProduct.getPromotion()];
       }
 
       if (promotionProduct && normalProduct) {
-        const restQuantity = quantity - promotionProduct.getQuantity();
-        if (normalProduct.getQuantity() >= restQuantity) {
-          promotionProduct.decreaseQuantity(promotionProduct.getQuantity());
+        const totalQuantityOfPromotionProduct = promotionProduct.getQuantity();
+        const restQuantity = quantity - totalQuantityOfPromotionProduct;
+        if (totalQuantityOfPromotionProduct >= restQuantity) {
+          promotionProduct.decreaseQuantity(totalQuantityOfPromotionProduct);
           normalProduct.decreaseQuantity(restQuantity);
-          return;
+          return [name, totalQuantityOfPromotionProduct, price, promotionProduct.getPromotion()];
         }
       }
 
@@ -47,7 +58,18 @@ class Stock {
       }
 
       normalProduct.decreaseQuantity(quantity);
+      return;
     });
+  }
+
+  getProductPrice(name) {
+    const promotionProduct = this.#findPromotionProduct(name);
+    const normalProduct = this.#findNormalProduct(name);
+
+    if (promotionProduct) {
+      return promotionProduct.getPrice();
+    }
+    return normalProduct.getPrice();
   }
 
   #findPromotionProduct(name) {

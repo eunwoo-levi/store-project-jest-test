@@ -1,29 +1,51 @@
-import { readProducts } from '../utils/fileReader.js';
+import { readProducts, readPromotions } from '../utils/fileReader.js';
 
 class StoreService {
   #stock;
+  #promotion;
   constructor() {
     this.#stock = null;
+    this.#promotion = null;
   }
 
   storeProductsInStock() {
     this.#stock = readProducts();
+    this.#promotion = readPromotions();
   }
 
   getProductStock() {
     return this.#stock.getStock();
   }
 
-  decreaseStock(purchaseString) {
-    const purchaseProducts = this.#parsedString(purchaseString);
-    this.#stock.decreaseQuantitiy(purchaseProducts);
+  getProductReceiptInfo(purchasedProducts) {
+    return purchasedProducts.map((purchasedProduct) => {
+      const [name, quantity] = purchasedProduct;
+      const price = this.#stock.getProductPrice(name);
+      return [name, quantity, price];
+    });
   }
 
-  #parsedString(purchaseString) {
-    return purchaseString.split(',').map((purchase) => {
-      const stock = purchase.slice(1, purchase.length - 1);
-      const [product, quantity] = stock.split('-');
-      return [product, quantity];
+  decreaseStock(productInfo) {
+    const productsWithPromotion = this.#stock.decreaseQuantitiy(productInfo);
+    const promotionQuantity = this.#getPromotionQuantity(productsWithPromotion);
+    return promotionQuantity;
+  }
+
+  #getPromotionQuantity(productsWithPromotion) {
+    return productsWithPromotion.map((productWithPromotion) => {
+      if (!productWithPromotion) {
+        return;
+      }
+
+      const [name, quantity, price, promotion] = productWithPromotion;
+      const promotionModel = this.#promotion.find((promotionModel) => promotionModel.getName() === promotion);
+
+      if (promotionModel.checkForPromotion(quantity)) {
+        const buy = promotionModel.getBuy();
+        const quantityOfPromotion = Math.floor(quantity / (buy + 1));
+
+        return [name, quantityOfPromotion, price, promotion];
+      }
     });
   }
 }

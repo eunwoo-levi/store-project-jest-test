@@ -1,7 +1,7 @@
-import { Console } from '@woowacourse/mission-utils';
 import InputView from '../views/InputView.js';
 import OutputView from '../views/OutputView.js';
 import StoreService from '../services/StoreService.js';
+import Receipt from '../models/Receipt.js';
 
 class Controller {
   #inputView;
@@ -17,10 +17,17 @@ class Controller {
     this.#outputView.printHeader();
     this.#outputView.printStock(storeService.getProductStock());
 
-    const itemAndQuantity = await this.#inputView.getProductAndQuantity();
-    storeService.decreaseStock(itemAndQuantity);
+    const purchasedProduct = await this.#inputView.getProductAndQuantity();
+    const productInfo = storeService.getProductReceiptInfo(purchasedProduct);
+    // promotionQuantity : [name, quantity, price, promotion]
+    const productsWithPromotion = storeService.decreaseStock(productInfo);
 
-    this.#outputView.printStock(storeService.getProductStock());
+    const isMembershipDiscountSelected = await this.#inputView.getMembershipDiscount();
+
+    const receipt = new Receipt();
+    const receiptResult = receipt.calculateReceipt(productInfo, productsWithPromotion, isMembershipDiscountSelected);
+
+    this.#outputView.printReceipt(productInfo, productsWithPromotion, receiptResult);
   }
 }
 

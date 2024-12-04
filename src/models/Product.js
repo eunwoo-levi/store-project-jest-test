@@ -14,11 +14,11 @@ class Product {
   }
 
   getPrice() {
-    return this.#price;
+    return Number(this.#price);
   }
 
   getQuantity() {
-    return this.#quantity;
+    return Number(this.#quantity);
   }
 
   getInfo() {
