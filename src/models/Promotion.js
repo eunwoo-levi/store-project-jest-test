@@ -1,3 +1,5 @@
+import { DateTimes } from '@woowacourse/mission-utils';
+
 class Promotion {
   #name;
   #buy;
@@ -21,11 +23,19 @@ class Promotion {
   }
 
   checkForPromotion(quantity) {
-    if (quantity >= this.#buy) {
+    if (quantity >= this.#buy && this.#isValidPromotionPeriod()) {
       return true;
     }
 
     return false;
+  }
+
+  #isValidPromotionPeriod() {
+    const nowDate = DateTimes.now();
+    const startDate = new Date(this.#startDate);
+    const endDate = new Date(this.#endDate);
+
+    return nowDate >= startDate && nowDate <= endDate;
   }
 }
 

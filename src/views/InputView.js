@@ -25,21 +25,27 @@ class InputView {
     });
   }
 
-  getPurchasingWithoutPromotionDiscount(quantity) {
+  getPurchasingWithoutPromotionDiscount(name, quantity) {
     return retryInput(async () => {
-      const isPurchasingWithoutPromotionDiscountSelected = await Console.readLineAsync(
-        INPUT.CONTINUE_PURCHASE_WITHOUT_DISCOUNT(quantity)
+      const continuePurchasingWithoutPromotion = await Console.readLineAsync(
+        INPUT.CONTINUE_PURCHASE_WITHOUT_DISCOUNT(name, quantity)
       );
-      return isPurchasingWithoutPromotionDiscountSelected;
+      if (continuePurchasingWithoutPromotion === 'Y') {
+        return true;
+      } else if (continuePurchasingWithoutPromotion === 'N') {
+        return false;
+      }
+
+      throw new Error(ERROR.INVALID_INPUT);
     });
   }
 
   getContinueShopping() {
     return retryInput(async () => {
-      const isContinueShoppingSelected = await Console.readLineAsync(INPUT.MEMBERSHIP_DISCOUNT);
-      if (isContinueShoppingSelected === 'Y') {
+      const continueShopping = await Console.readLineAsync(INPUT.CONTINUE_PURCHASE);
+      if (continueShopping === 'Y') {
         return true;
-      } else if (isContinueShoppingSelected === 'N') {
+      } else if (continueShopping === 'N') {
         return false;
       }
 

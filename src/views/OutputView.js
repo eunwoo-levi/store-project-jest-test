@@ -9,10 +9,12 @@ class OutputView {
   printStock(allProducts) {
     allProducts.forEach((product) => {
       if (product.promotion) {
-        Console.print(OUTPUT.STOCK(product.name, product.price, product.quantity, product.promotion));
+        Console.print(
+          OUTPUT.STOCK(product.name, Number(product.price).toLocaleString(), product.quantity, product.promotion)
+        );
         return;
       }
-      Console.print(OUTPUT.STOCK(product.name, product.price, product.quantity, ''));
+      Console.print(OUTPUT.STOCK(product.name, Number(product.price).toLocaleString(), product.quantity, ''));
     });
   }
 
@@ -27,9 +29,8 @@ class OutputView {
       if (!productWithPromotion) {
         return;
       }
-      const [name, quantity, price, promotion] = productWithPromotion;
-      if (quantity > 0) {
-        Console.print(OUTPUT.RECEIPT_PROMOTION(name, quantity));
+      if (productWithPromotion.quantityWithPromotion > 0) {
+        Console.print(OUTPUT.RECEIPT_PROMOTION(productWithPromotion.name, productWithPromotion.quantityWithPromotion));
       }
     });
 

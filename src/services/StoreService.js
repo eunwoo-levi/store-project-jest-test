@@ -1,4 +1,5 @@
 import { readProducts, readPromotions } from '../utils/fileReader.js';
+import { ERROR } from '../constants/error.js';
 
 class StoreService {
   #stock;
@@ -21,32 +22,63 @@ class StoreService {
     return purchasedProducts.map((purchasedProduct) => {
       const [name, quantity] = purchasedProduct;
       const price = this.#stock.getProductPrice(name);
-      return [name, quantity, price];
+      return [name, Number(quantity), Number(price)];
     });
   }
 
-  decreaseStock(productInfo) {
-    const productsWithPromotion = this.#stock.decreaseQuantitiy(productInfo);
-    const promotionQuantity = this.#getPromotionQuantity(productsWithPromotion);
-    return promotionQuantity;
-  }
+  decreaseStock(purchasedProducts) {
+    return purchasedProducts.map((purchasedProduct) => {
+      const [name, quantity, price] = purchasedProduct;
 
-  #getPromotionQuantity(productsWithPromotion) {
-    return productsWithPromotion.map((productWithPromotion) => {
-      if (!productWithPromotion) {
+      const promotionProduct = this.#stock.findPromotionProduct(name);
+      const normalProduct = this.#stock.findNormalProduct(name);
+
+      if (!promotionProduct && normalProduct) {
+        if (normalProduct.getQuantity() < quantity) {
+          throw new Error(ERROR.PRODUCT_SOLD_OUT);
+        }
+        normalProduct.decreaseQuantity(quantity);
         return;
       }
 
-      const [name, quantity, price, promotion] = productWithPromotion;
-      const promotionModel = this.#promotion.find((promotionModel) => promotionModel.getName() === promotion);
+      if (promotionProduct) {
+        if (!normalProduct && promotionProduct.getQuantity() < quantity) {
+          throw new Error(ERROR.PRODUCT_SOLD_OUT);
+        } else if (normalProduct && promotionProduct.getQuantity() + normalProduct.getQuantity() < quantity) {
+          throw new Error(ERROR.PRODUCT_SOLD_OUT);
+        }
 
-      if (promotionModel.checkForPromotion(quantity)) {
+        const promotionModel = this.#findPromotionModel(promotionProduct.getPromotion());
         const buy = promotionModel.getBuy();
-        const quantityOfPromotion = Math.floor(quantity / (buy + 1));
+        const quantityWithPromotion = Math.floor(quantity / (buy + 1));
+        let restQuantity = 0;
 
-        return [name, quantityOfPromotion, price, promotion];
+        if (promotionModel.checkForPromotion(quantity)) {
+          if (promotionProduct.getQuantity() >= quantity) {
+            promotionProduct.decreaseQuantity(quantity);
+            return {
+              name: promotionProduct.getName(),
+              price: promotionProduct.getPrice(),
+              quantityWithPromotion,
+              restQuantity,
+            };
+          }
+
+          restQuantity = Math.floor(quantity % quantityWithPromotion) + (quantity - promotionProduct.getQuantity());
+          promotionProduct.decreaseQuantity(promotionProduct.getQuantity());
+          return {
+            name: promotionProduct.getName(),
+            price: promotionProduct.getPrice(),
+            quantityWithPromotion,
+            restQuantity,
+          };
+        }
       }
     });
+  }
+
+  #findPromotionModel(promotionType) {
+    return this.#promotion.find((promotionModel) => promotionModel.getName() === promotionType);
   }
 }
 

@@ -14,9 +14,8 @@ class Receipt {
       if (!product) {
         return;
       }
-      const [name, quantity, price, promotion] = product;
-      promotionDiscount += quantity * price;
-      promotionProductNames.add(name);
+      promotionDiscount += product.quantityWithPromotion * product.price;
+      promotionProductNames.add(product.name);
     });
 
     products.map((product) => {
